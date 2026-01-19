@@ -21,9 +21,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
+    const { confirmPassword, ...userData } = validatedData
     const newUser = new User({
-      ...validatedData,
-      password: Math.random().toString(36).substring(2, 15),
+      name: userData.name,
+      email: userData.email,
+      mobile: userData.mobile,
+      role: userData.role,
+      status: userData.status ?? "ACTIVE",
+      password: userData.password,
       createdBy: session.userId,
     })
 

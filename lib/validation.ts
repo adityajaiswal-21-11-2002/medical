@@ -12,6 +12,11 @@ export const userCreateSchema = z.object({
   mobile: z.string().regex(/^[0-9]{10}$/, "Mobile must be 10 digits"),
   role: z.enum(["ADMIN", "USER"]),
   status: z.enum(["ACTIVE", "BLOCKED"]).optional(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ["confirmPassword"],
+  message: "Passwords must match",
 })
 
 // Product validation schemas

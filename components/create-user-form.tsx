@@ -20,6 +20,8 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     mobile: "",
     role: "USER",
     status: "ACTIVE",
+    password: "",
+    confirmPassword: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -34,6 +36,12 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords must match")
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch("/api/users/create", {
@@ -83,6 +91,28 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               <option value="USER">User</option>
               <option value="ADMIN">Admin</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Password *</label>
+            <Input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              minLength={8}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Confirm Password *</label>
+            <Input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              minLength={8}
+            />
           </div>
         </div>
 
