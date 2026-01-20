@@ -22,6 +22,7 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     status: "ACTIVE",
     password: "",
     confirmPassword: "",
+    photoBase64: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -30,6 +31,23 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       ...prev,
       [name]: value,
     }))
+  }
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const result = reader.result
+      if (typeof result === "string") {
+        setFormData((prev) => ({
+          ...prev,
+          photoBase64: result,
+        }))
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,6 +131,21 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               required
               minLength={8}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">User Photo</label>
+            <Input type="file" accept="image/*" onChange={handlePhotoChange} />
+            {formData.photoBase64 && (
+              <div className="mt-2">
+                <span className="text-xs text-slate-500">Preview:</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={formData.photoBase64}
+                  alt="User preview"
+                  className="mt-1 h-16 w-16 rounded-full object-cover border"
+                />
+              </div>
+            )}
           </div>
         </div>
 

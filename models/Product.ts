@@ -5,8 +5,7 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true },
     strength: String,
     dosageForm: {
-      type: String,
-      enum: ["Tablet", "Capsule", "Syrup", "Injection"],
+      type: String, // free-text dosage form
       required: true,
     },
     category: String,
@@ -56,6 +55,8 @@ const productSchema = new mongoose.Schema(
       enum: ["ACTIVE", "INACTIVE"],
       default: "ACTIVE",
     },
+    // Base64-encoded product photo (data URL or raw base64 string)
+    photoBase64: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true },

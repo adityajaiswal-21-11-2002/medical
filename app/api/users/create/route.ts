@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       role: userData.role,
       status: userData.status ?? "ACTIVE",
       password: userData.password,
+      photoBase64: userData.photoBase64,
       createdBy: session.userId,
     })
 

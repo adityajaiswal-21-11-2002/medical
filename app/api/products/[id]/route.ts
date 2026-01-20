@@ -48,3 +48,23 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    await connectDB()
+    const product = await Product.findByIdAndDelete(params.id)
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ message: "Product deleted successfully" })
+  } catch (error) {
+    return NextResponse.json({ error: "Server error" }, { status: 500 })
+  }
+}

@@ -4,6 +4,7 @@ export class ApiError extends Error {
   constructor(
     public statusCode: number,
     message: string,
+    public details?: any,
   ) {
     super(message)
     this.name = "ApiError"
@@ -14,7 +15,7 @@ export function handleApiError(error: any) {
   console.error("[API Error]", error)
 
   if (error instanceof ApiError) {
-    return NextResponse.json({ error: error.message }, { status: error.statusCode })
+    return NextResponse.json({ error: error.message, details: error.details }, { status: error.statusCode })
   }
 
   if (error.name === "ZodError") {
@@ -49,7 +50,11 @@ export function requireAdmin(session: any) {
 export function validateInput<T>(schema: any, data: any): T {
   const result = schema.safeParse(data)
   if (!result.success) {
-    throw new ApiError(400, `Invalid input: ${result.error.errors[0].message}`)
+    const flattened = result.error.flatten()
+    throw new ApiError(400, "Validation error", {
+      fieldErrors: flattened.fieldErrors,
+      formErrors: flattened.formErrors,
+    })
   }
   return result.data
 }

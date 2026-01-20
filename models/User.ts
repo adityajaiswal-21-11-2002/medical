@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema(
     mobile: { type: String, required: true },
     role: { type: String, enum: ["ADMIN", "USER"], default: "USER" },
     status: { type: String, enum: ["ACTIVE", "BLOCKED"], default: "ACTIVE" },
+    // Base64-encoded user photo (avatar)
+    photoBase64: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     lastLogin: Date,
   },
