@@ -4,7 +4,7 @@ import Product from "@/models/Product"
 import { getSession } from "@/lib/auth"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session) {
@@ -13,7 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     await connectDB()
 
-    const order = await Order.findById(params.id).populate("bookedBy", "name email mobile").populate("items.product")
+    const { id } = await params
+    const order = await Order.findById(id).populate("bookedBy", "name email mobile").populate("items.product")
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.role !== "ADMIN") {
@@ -40,9 +41,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const body = await request.json()
     const { status } = body
+    const { id } = await params
 
     if (status === "CANCELLED") {
-      const order = await Order.findById(params.id)
+      const order = await Order.findById(id)
       if (order && order.status !== "CANCELLED") {
         for (const item of order.items) {
           await Product.findByIdAndUpdate(item.product, {
@@ -52,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(params.id, { status }, { new: true }).populate("items.product")
+    const updatedOrder = await Order.findByIdAndUpdate(id, { status }, { new: true }).populate("items.product")
 
     return NextResponse.json({ order: updatedOrder })
   } catch (error) {

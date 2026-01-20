@@ -3,7 +3,7 @@ import User from "@/models/User"
 import { getSession } from "@/lib/auth"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.role !== "ADMIN") {
@@ -14,8 +14,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const body = await request.json()
     const { name, mobile, status } = body
+    const { id } = await params
 
-    const user = await User.findByIdAndUpdate(params.id, { name, mobile, status }, { new: true }).select("-password")
+    const user = await User.findByIdAndUpdate(id, { name, mobile, status }, { new: true }).select("-password")
 
     return NextResponse.json({ user })
   } catch (error) {

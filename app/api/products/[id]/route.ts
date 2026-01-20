@@ -3,7 +3,7 @@ import Product from "@/models/Product"
 import { getSession } from "@/lib/auth"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.role !== "ADMIN") {
@@ -13,6 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     await connectDB()
 
     const body = await request.json()
+    const { id } = await params
 
     const gstPercent = body.gstPercent || 5
     const taxableValue = body.sellingRate * (1 - (body.discountPercent || 0) / 100)
@@ -21,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const sgst = totalGst / 2
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       {
         ...body,
         cgst,
@@ -39,17 +40,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
-    const product = await Product.findById(params.id)
+    const { id } = await params
+    const product = await Product.findById(id)
     return NextResponse.json({ product })
   } catch (error) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.role !== "ADMIN") {
@@ -57,7 +59,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     await connectDB()
-    const product = await Product.findByIdAndDelete(params.id)
+    const { id } = await params
+    const product = await Product.findByIdAndDelete(id)
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })

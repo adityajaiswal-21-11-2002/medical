@@ -65,7 +65,7 @@ export default function UserOrdersPage() {
                   {order.status}
                 </p>
                 <div>
-                  <Link href={`/admin/orders/${order._id}`}>
+                  <Link href={`/user/orders/${order._id}`}>
                     <Button variant="outline" size="sm">
                       View Invoice
                     </Button>
