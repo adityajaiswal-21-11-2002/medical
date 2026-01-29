@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const filter: any = { status: "ACTIVE" }
 
-    if (searchParams.get("manufacturer")) {
-      filter.manufacturerName = searchParams.get("manufacturer")
+    if (searchParams.get("category")) {
+      filter.category = searchParams.get("category")
     }
 
     if (searchParams.get("search")) {

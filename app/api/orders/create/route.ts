@@ -38,18 +38,15 @@ export async function POST(request: NextRequest) {
         throw new ApiError(400, `Insufficient stock for ${product.name}. Available: ${product.currentStock}`)
       }
 
-      const itemAmount = item.quantity * product.sellingRate
+      const itemAmount = item.quantity * product.netMrp
       const gstAmount = (itemAmount * product.gstPercent) / 100
 
       processedItems.push({
         product: product._id,
-        batch: product.batch,
-        expiry: product.expiryDate,
         quantity: item.quantity,
         freeQuantity: product.freeQuantity,
         mrp: product.mrp,
-        rate: product.sellingRate,
-        discount: product.discountValue || 0,
+        rate: product.netMrp,
         cgst: gstAmount / 2,
         sgst: gstAmount / 2,
         amount: itemAmount + gstAmount,

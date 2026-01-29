@@ -6,14 +6,14 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface Product {
   _id: string
   name: string
-  batch: string
-  expiryDate: string
   currentStock: number
-  sellingRate: number
+  netMrp: number
   gstPercent: number
 }
 
@@ -27,6 +27,8 @@ export default function CreateOrderPage() {
   const [doctorName, setDoctorName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [productSearch, setProductSearch] = useState("")
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -55,8 +57,7 @@ export default function CreateOrderPage() {
         {
           productId: product._id,
           quantity: 1,
-          batch: product.batch,
-          rate: product.sellingRate,
+          rate: product.netMrp,
         },
       ])
     }
@@ -78,7 +79,7 @@ export default function CreateOrderPage() {
     return selectedProducts.reduce((total, item) => {
       const product = products.find((p) => p._id === item.productId)
       if (product) {
-        const amount = item.quantity * product.sellingRate
+        const amount = item.quantity * product.netMrp
         const gst = (amount * product.gstPercent) / 100
         return total + amount + gst
       }
@@ -130,14 +131,21 @@ export default function CreateOrderPage() {
     }
   }
 
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Create Order</h1>
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase())
+  )
 
-      <form onSubmit={handleSubmitOrder} className="space-y-4">
-        <Card className="p-4">
-          <h2 className="font-bold mb-4">Customer Details</h2>
-          <div className="grid grid-cols-2 gap-4">
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Create Order</h1>
+        <p className="text-sm text-slate-500">Add customer details and build the order list.</p>
+      </div>
+
+      <form onSubmit={handleSubmitOrder} className="space-y-6">
+        <Card className="rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Customer Details</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium mb-1">Customer Name *</label>
               <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required />
@@ -161,50 +169,50 @@ export default function CreateOrderPage() {
           </div>
         </Card>
 
-        <Card className="p-4">
-          <h2 className="font-bold mb-4">Select Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-            {products.map((product) => (
-              <div key={product._id} className="border p-2 rounded">
-                <p className="font-medium text-sm">{product.name}</p>
-                <p className="text-xs text-slate-600">Batch: {product.batch}</p>
-                <p className="text-xs text-slate-600">Stock: {product.currentStock}</p>
-                <p className="text-xs font-bold">₹{product.sellingRate}</p>
-                <Button type="button" size="sm" onClick={() => handleAddProduct(product)} className="mt-2 w-full">
-                  Add to Order
-                </Button>
-              </div>
-            ))}
+        <Card className="rounded-xl border bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Select Products</h2>
+              <p className="text-sm text-slate-500">Add items to the order list.</p>
+            </div>
+            <Button type="button" onClick={() => setPickerOpen(true)}>
+              Add Products
+            </Button>
           </div>
         </Card>
 
         {selectedProducts.length > 0 && (
-          <Card className="p-4">
-            <h2 className="font-bold mb-4">Order Items</h2>
-            <div className="space-y-2">
+          <Card className="rounded-xl border bg-white p-6 shadow-sm">
+            <h2 className="font-semibold mb-4">Order Items</h2>
+            <div className="space-y-3">
               {selectedProducts.map((item) => {
                 const product = products.find((p) => p._id === item.productId)
                 if (!product) return null
 
-                const amount = item.quantity * product.sellingRate
+                const amount = item.quantity * product.netMrp
                 const gst = (amount * product.gstPercent) / 100
 
                 return (
-                  <div key={item.productId} className="border p-3 rounded">
-                    <div className="flex justify-between items-center">
+                  <div key={item.productId} className="rounded-lg border bg-slate-50 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-slate-600">Batch: {product.batch}</p>
+                        <p className="font-medium text-slate-900">{product.name}</p>
+                        <p className="text-xs text-slate-500">Stock: {product.currentStock}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProduct(item.productId)}
-                        className="text-red-600"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                          ₹{product.netMrp}
+                        </Badge>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProduct(item.productId)}
+                          className="text-sm font-medium text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="grid grid-cols-1 gap-3 mt-3 md:grid-cols-3">
                       <div>
                         <label className="text-xs">Qty</label>
                         <Input
@@ -216,11 +224,11 @@ export default function CreateOrderPage() {
                       </div>
                       <div>
                         <label className="text-xs">Rate</label>
-                        <p className="text-sm">₹{product.sellingRate}</p>
+                        <p className="text-sm font-semibold">₹{product.netMrp}</p>
                       </div>
                       <div>
                         <label className="text-xs">Total (inc. GST)</label>
-                        <p className="text-sm font-bold">₹{(amount + gst).toFixed(2)}</p>
+                        <p className="text-sm font-semibold">₹{(amount + gst).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -229,7 +237,7 @@ export default function CreateOrderPage() {
             </div>
 
             <div className="mt-4 pt-4 border-t">
-              <p className="text-lg font-bold">Total Amount: ₹{calculateTotal().toFixed(2)}</p>
+              <p className="text-lg font-semibold">Total Amount: ₹{calculateTotal().toFixed(2)}</p>
             </div>
           </Card>
         )}
@@ -240,6 +248,45 @@ export default function CreateOrderPage() {
           {loading ? "Creating Order..." : "Create Order"}
         </Button>
       </form>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select Products</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Search products..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+            />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {filteredProducts.map((product) => (
+                <div key={product._id} className="rounded-lg border bg-slate-50 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{product.name}</p>
+                      <p className="text-xs text-slate-500">Stock: {product.currentStock}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-900">₹{product.netMrp}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => handleAddProduct(product)}
+                    className="mt-3 w-full"
+                  >
+                    Add to Order
+                  </Button>
+                </div>
+              ))}
+              {filteredProducts.length === 0 && (
+                <div className="text-sm text-slate-500">No products match your search.</div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

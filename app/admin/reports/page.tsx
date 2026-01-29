@@ -1,18 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 interface Product {
   _id: string
   name: string
-  batch: string
-  expiryDate: string
+  shelfLife: string
   currentStock: number
   mrp: number
 }
@@ -35,6 +36,24 @@ export default function ReportsPage() {
   const [totalSales, setTotalSales] = useState(0)
   const [daysThreshold, setDaysThreshold] = useState("30")
   const [dateRange, setDateRange] = useState({ start: "", end: "" })
+
+  const salesChartData = useMemo(() => {
+    const totals = new Map<string, number>()
+    for (const order of salesOrders) {
+      const dateKey = new Date(order.createdAt).toLocaleDateString()
+      totals.set(dateKey, (totals.get(dateKey) ?? 0) + order.netAmount)
+    }
+    return Array.from(totals.entries())
+      .map(([date, total]) => ({ date, total: Number(total.toFixed(2)) }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [salesOrders])
+
+  const salesChartConfig = {
+    total: {
+      label: "Sales",
+      color: "hsl(221.2 83.2% 53.3%)",
+    },
+  }
 
   const fetchExpiryReport = async () => {
     setLoading(true)
@@ -90,20 +109,29 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Reports & Analytics</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Reports & Analytics</h1>
+        <p className="text-sm text-slate-500">Generate stock, expiry, and sales insights.</p>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="expiry">Expiry Report</TabsTrigger>
-          <TabsTrigger value="lowstock">Low Stock</TabsTrigger>
-          <TabsTrigger value="sales">Sales Report</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 rounded-xl bg-slate-100 p-1">
+          <TabsTrigger value="expiry" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Expiry Report
+          </TabsTrigger>
+          <TabsTrigger value="lowstock" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Low Stock
+          </TabsTrigger>
+          <TabsTrigger value="sales" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Sales Report
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="expiry" className="space-y-4">
-          <Card className="p-4">
-            <h3 className="font-bold mb-3">Expiry Report - Products Nearing Expiry</h3>
-            <div className="flex gap-2 mb-4">
+          <Card className="rounded-xl border bg-white p-6 shadow-sm">
+            <h3 className="font-bold mb-3">Shelf Life Report - Products Nearing Expiry</h3>
+            <div className="flex flex-wrap gap-2 mb-4">
               <Select value={daysThreshold} onValueChange={setDaysThreshold}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Select days" />
@@ -121,29 +149,29 @@ export default function ReportsPage() {
             </div>
 
             {expiryProducts.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-100">
+              <div className="overflow-hidden rounded-lg border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
                       <th className="px-3 py-2 text-left">Product Name</th>
-                      <th className="px-3 py-2 text-left">Batch</th>
-                      <th className="px-3 py-2 text-left">Expiry Date</th>
+                      <th className="px-3 py-2 text-left">Shelf Life</th>
                       <th className="px-3 py-2 text-left">Current Stock</th>
                       <th className="px-3 py-2 text-left">MRP</th>
                     </tr>
-                  </thead>
-                  <tbody>
+                    </thead>
+                    <tbody>
                     {expiryProducts.map((product) => (
-                      <tr key={product._id} className="border-b hover:bg-slate-50">
-                        <td className="px-3 py-2">{product.name}</td>
-                        <td className="px-3 py-2">{product.batch}</td>
-                        <td className="px-3 py-2 text-red-600 font-semibold">{product.expiryDate}</td>
+                      <tr key={product._id} className="border-b last:border-b-0 hover:bg-slate-50/70">
+                        <td className="px-3 py-2 font-medium text-slate-900">{product.name}</td>
+                        <td className="px-3 py-2 text-rose-600 font-semibold">{product.shelfLife}</td>
                         <td className="px-3 py-2">{product.currentStock}</td>
                         <td className="px-3 py-2">₹{product.mrp}</td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
             {expiryProducts.length === 0 && <p className="text-slate-500">No data available</p>}
@@ -151,36 +179,36 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="lowstock" className="space-y-4">
-          <Card className="p-4">
-            <h3 className="font-bold mb-3">Low Stock Report - Below Minimum Stock Level</h3>
+          <Card className="rounded-xl border bg-white p-6 shadow-sm">
+            <h3 className="font-bold mb-3">Low Stock Report - Out of Stock Items</h3>
             <Button onClick={fetchLowStockReport} disabled={loading} className="mb-4">
               {loading ? "Loading..." : "Generate Report"}
             </Button>
 
             {lowStockProducts.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-100">
+              <div className="overflow-hidden rounded-lg border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr>
                       <th className="px-3 py-2 text-left">Product Name</th>
                       <th className="px-3 py-2 text-left">Current Stock</th>
-                      <th className="px-3 py-2 text-left">Minimum Alert Level</th>
                       <th className="px-3 py-2 text-left">Status</th>
                     </tr>
-                  </thead>
-                  <tbody>
+                    </thead>
+                    <tbody>
                     {lowStockProducts.map((product) => (
-                      <tr key={product._id} className="border-b hover:bg-slate-50">
-                        <td className="px-3 py-2">{product.name}</td>
-                        <td className="px-3 py-2 font-semibold text-red-600">{product.currentStock}</td>
-                        <td className="px-3 py-2">{(product as any).minimumStockAlert}</td>
+                      <tr key={product._id} className="border-b last:border-b-0 hover:bg-slate-50/70">
+                        <td className="px-3 py-2 font-medium text-slate-900">{product.name}</td>
+                        <td className="px-3 py-2 font-semibold text-rose-600">{product.currentStock}</td>
                         <td className="px-3 py-2">
-                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">OUT OF STOCK</span>
+                          <span className="bg-rose-100 text-rose-800 px-2 py-1 rounded text-xs">OUT OF STOCK</span>
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
             {lowStockProducts.length === 0 && <p className="text-slate-500">No data available</p>}
@@ -188,9 +216,9 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="sales" className="space-y-4">
-          <Card className="p-4">
+          <Card className="rounded-xl border bg-white p-6 shadow-sm">
             <h3 className="font-bold mb-3">Sales Report - Order Analysis</h3>
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-1 gap-2 mb-4 md:grid-cols-3">
               <Input
                 type="date"
                 value={dateRange.start}
@@ -210,20 +238,43 @@ export default function ReportsPage() {
 
             {salesOrders.length > 0 && (
               <>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <Card className="p-3 bg-blue-50">
-                    <p className="text-sm text-slate-600">Total Sales Amount</p>
-                    <p className="text-2xl font-bold">₹{totalSales.toFixed(2)}</p>
+                <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
+                  <Card className="rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Total Sales Amount</p>
+                    <p className="text-2xl font-semibold">₹{totalSales.toFixed(2)}</p>
                   </Card>
-                  <Card className="p-3 bg-green-50">
-                    <p className="text-sm text-slate-600">Total Orders</p>
-                    <p className="text-2xl font-bold">{salesOrders.length}</p>
+                  <Card className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Total Orders</p>
+                    <p className="text-2xl font-semibold">{salesOrders.length}</p>
                   </Card>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-100">
+                <Card className="rounded-lg border bg-white p-4 shadow-sm">
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-slate-900">Sales Trend</h4>
+                    <p className="text-xs text-slate-500">Daily sales totals from selected range.</p>
+                  </div>
+                  <ChartContainer config={salesChartConfig} className="h-56 w-full">
+                    <LineChart data={salesChartData} margin={{ left: 8, right: 8 }}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis dataKey="date" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="var(--color-total)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                </Card>
+
+                <div className="overflow-hidden rounded-lg border">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                       <tr>
                         <th className="px-3 py-2 text-left">Order Number</th>
                         <th className="px-3 py-2 text-left">Booked By</th>
@@ -231,19 +282,20 @@ export default function ReportsPage() {
                         <th className="px-3 py-2 text-left">Amount</th>
                         <th className="px-3 py-2 text-left">Date</th>
                       </tr>
-                    </thead>
-                    <tbody>
+                      </thead>
+                      <tbody>
                       {salesOrders.map((order) => (
-                        <tr key={order._id} className="border-b hover:bg-slate-50">
-                          <td className="px-3 py-2">{order.orderNumber}</td>
+                        <tr key={order._id} className="border-b last:border-b-0 hover:bg-slate-50/70">
+                          <td className="px-3 py-2 font-medium text-slate-900">{order.orderNumber}</td>
                           <td className="px-3 py-2">{order.bookedBy?.name}</td>
                           <td className="px-3 py-2">{order.customerName}</td>
                           <td className="px-3 py-2 font-semibold">₹{order.netAmount.toFixed(2)}</td>
-                          <td className="px-3 py-2">{new Date(order.createdAt).toLocaleDateString()}</td>
+                          <td className="px-3 py-2 text-slate-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </>
             )}

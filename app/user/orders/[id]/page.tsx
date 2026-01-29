@@ -174,16 +174,16 @@ export default function UserOrderInvoicePage({ params }: { params: Promise<{ id:
   if (!order) return <div className="p-4">Order not found</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Invoice #{order.orderNumber}</h1>
+          <h1 className="text-2xl font-semibold">Invoice #{order.orderNumber}</h1>
           <p className="text-sm text-slate-600">Order Date: {new Date(order.createdAt).toLocaleDateString()}</p>
         </div>
         <Button onClick={handlePrint}>Print Invoice</Button>
       </div>
 
-      <div ref={invoiceRef} className="bg-white p-4 rounded border">
+      <div ref={invoiceRef} className="rounded-xl border bg-white p-6 shadow-sm">
         <Invoice order={order} />
       </div>
     </div>

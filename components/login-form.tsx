@@ -6,6 +6,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -45,11 +47,26 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">Medical Inventory System</h1>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 px-6 py-12">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-8 lg:flex-row lg:items-stretch">
+        <div className="flex w-full max-w-md flex-col justify-center space-y-4">
+          <Badge variant="secondary" className="w-fit bg-emerald-100 text-emerald-700">
+            Secure Access
+          </Badge>
+          <h1 className="text-3xl font-semibold text-slate-900">Medical Inventory System</h1>
+          <p className="text-sm text-slate-600">
+            Sign in to manage inventory, orders, and reports across your distribution network.
+          </p>
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs text-emerald-700">
+            Demo Admin: admin@example.com / admin123
+          </div>
+        </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <Card className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-lg">
+          <h2 className="text-xl font-semibold text-slate-900">Welcome back</h2>
+          <p className="text-sm text-slate-500">Enter your credentials to continue.</p>
+
+          <form onSubmit={handleLogin} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
             <Input
@@ -78,8 +95,7 @@ export default function LoginForm() {
             {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
-
-        <p className="text-center text-sm text-slate-600 mt-4">Demo Admin: admin@example.com / admin123</p>
+        </Card>
       </div>
     </div>
   )

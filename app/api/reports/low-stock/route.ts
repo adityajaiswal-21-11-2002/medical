@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     await connectDB()
 
     const products = await Product.find({
-      $expr: { $lte: ["$currentStock", "$minimumStockAlert"] },
+      currentStock: { $lte: 0 },
       status: "ACTIVE",
     }).sort({ currentStock: 1 })
 

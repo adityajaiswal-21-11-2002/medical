@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import CreateUserForm from "@/components/create-user-form"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 
 interface User {
@@ -68,13 +70,23 @@ export default function UsersPage() {
   if (loading) return <div className="p-4">Loading...</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <Button onClick={() => setShowForm(!showForm)}>{showForm ? "Cancel" : "Create User"}</Button>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">User Management</h1>
+          <p className="text-sm text-slate-500">Manage employee access and permissions.</p>
+        </div>
+        <Button onClick={() => setShowForm(true)}>Create User</Button>
       </div>
 
-      {showForm && <CreateUserForm onSuccess={handleUserCreated} />}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create User</DialogTitle>
+          </DialogHeader>
+          <CreateUserForm onSuccess={handleUserCreated} />
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-2">
         <Input
@@ -88,37 +100,43 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100">
+      <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Email</th>
-              <th className="px-4 py-2 text-left">Mobile</th>
-              <th className="px-4 py-2 text-left">Role</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
+              <th className="px-4 py-3 text-left">Name</th>
+              <th className="px-4 py-3 text-left">Email</th>
+              <th className="px-4 py-3 text-left">Mobile</th>
+              <th className="px-4 py-3 text-left">Role</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             {users.map((user) => (
-              <tr key={user._id} className="border-b hover:bg-slate-50">
-                <td className="px-4 py-2">{user.name}</td>
-                <td className="px-4 py-2">{user.email}</td>
-                <td className="px-4 py-2">{user.mobile}</td>
-                <td className="px-4 py-2">{user.role}</td>
-                <td className="px-4 py-2">
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      user.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                    }`}
+              <tr key={user._id} className="border-b last:border-b-0 hover:bg-slate-50/70">
+                <td className="px-4 py-3 font-medium text-slate-900">{user.name}</td>
+                <td className="px-4 py-3 text-slate-600">{user.email}</td>
+                <td className="px-4 py-3">{user.mobile}</td>
+                <td className="px-4 py-3">
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                    {user.role}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      user.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                    }
                   >
                     {user.status}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-3">
                   <Select value={user.status} onValueChange={(newStatus) => handleStatusChange(user._id, newStatus)}>
-                    <SelectTrigger className="w-24">
+                    <SelectTrigger className="w-28">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -129,8 +147,9 @@ export default function UsersPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {users.length === 0 && <p className="text-center text-slate-500">No users found</p>}

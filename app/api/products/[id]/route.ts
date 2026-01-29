@@ -15,8 +15,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json()
     const { id } = await params
 
-    const gstPercent = body.gstPercent || 5
-    const taxableValue = body.sellingRate * (1 - (body.discountPercent || 0) / 100)
+    const gstPercent = body.gstPercent ?? 5
+    const taxableValue = body.netMrp ?? 0
     const totalGst = (taxableValue * gstPercent) / 100
     const cgst = totalGst / 2
     const sgst = totalGst / 2
@@ -29,7 +29,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         sgst,
         taxableValue,
         totalGstAmount: totalGst,
-        discountValue: (body.sellingRate * (body.discountPercent || 0)) / 100,
       },
       { new: true },
     )

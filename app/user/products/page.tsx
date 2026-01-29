@@ -3,16 +3,18 @@
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface Product {
   _id: string
   name: string
-  manufacturerName: string
-  batch: string
-  expiryDate: string
+  genericName: string
+  packaging: string
+  dosageForm: string
+  category: string
   currentStock: number
+  netMrp: number
   mrp: number
-  sellingRate: number
 }
 
 export default function UserProductsPage() {
@@ -43,8 +45,11 @@ export default function UserProductsPage() {
   if (loading) return <div className="p-4">Loading...</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Available Products</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Available Products</h1>
+        <p className="text-sm text-slate-500">Browse stock and pricing before creating orders.</p>
+      </div>
 
       <div className="flex gap-4">
         <Input
@@ -55,21 +60,31 @@ export default function UserProductsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredProducts.map((product) => (
-          <Card key={product._id} className="p-4 hover:shadow-lg transition">
-            <h3 className="font-bold text-lg">{product.name}</h3>
-            <p className="text-sm text-slate-600">Manufacturer: {product.manufacturerName}</p>
-            <p className="text-sm text-slate-600">Batch: {product.batch}</p>
-            <p className="text-sm text-slate-600">Expiry: {product.expiryDate}</p>
-            <div className="mt-2 flex justify-between items-end">
+          <Card key={product._id} className="rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs text-slate-500">Stock Available</p>
-                <p className="font-bold">{product.currentStock}</p>
+                <h3 className="text-base font-semibold text-slate-900">{product.name}</h3>
+                <p className="text-sm text-slate-500">Generic: {product.genericName}</p>
               </div>
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                {product.currentStock} in stock
+              </Badge>
+            </div>
+            <div className="mt-3 space-y-1 text-sm text-slate-600">
+              <p>Packaging: {product.packaging}</p>
+              <p>Dosage: {product.dosageForm}</p>
+              <p>Category: {product.category}</p>
+            </div>
+            <div className="mt-4 flex items-end justify-between">
               <div>
-                <p className="text-xs text-slate-500">Selling Rate</p>
-                <p className="font-bold">₹{product.sellingRate}</p>
+                <p className="text-xs text-slate-400">Net MRP</p>
+                <p className="text-base font-semibold text-slate-900">₹{product.netMrp}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">MRP</p>
+                <p className="text-sm text-slate-600">₹{product.mrp}</p>
               </div>
             </div>
           </Card>

@@ -192,10 +192,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   if (!order) return <div className="p-4">Order not found</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
+          <h1 className="text-2xl font-semibold">Order #{order.orderNumber}</h1>
+          <p className="text-sm text-slate-500">Update order status and print invoice.</p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm text-slate-600">Status:</span>
             <Select value={status} onValueChange={handleStatusChange}>
@@ -213,7 +214,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         <Button onClick={handlePrint}>Print Invoice</Button>
       </div>
 
-      <div ref={invoiceRef} className="bg-white p-4 rounded">
+      <div ref={invoiceRef} className="rounded-xl border bg-white p-6 shadow-sm">
         <Invoice order={order} />
       </div>
     </div>

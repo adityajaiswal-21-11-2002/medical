@@ -19,12 +19,12 @@ export async function GET(request: NextRequest) {
     const futureDate = new Date(currentDate.getTime() + daysThreshold * 24 * 60 * 60 * 1000)
 
     const products = await Product.find({
-      expiryDate: {
+      shelfLife: {
         $lt: futureDate.toLocaleDateString("en-US", { year: "numeric", month: "2-digit" }).replace(/\//g, "/"),
       },
       currentStock: { $gt: 0 },
       status: "ACTIVE",
-    }).sort({ expiryDate: 1 })
+    }).sort({ shelfLife: 1 })
 
     return NextResponse.json({ products })
   } catch (error) {

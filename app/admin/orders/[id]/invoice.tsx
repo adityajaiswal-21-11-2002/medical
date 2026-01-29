@@ -90,10 +90,9 @@ export default function Invoice({ order }: InvoiceProps) {
             <th className="px-2 py-1 text-left">Sr.</th>
             <th className="px-2 py-1 text-left">ITEM DESCRIPTION</th>
             <th className="px-2 py-1 text-left">HSN</th>
-            <th className="px-2 py-1 text-left">MFG.BY</th>
+            <th className="px-2 py-1 text-left">GENERIC</th>
             <th className="px-2 py-1 text-left">PACK</th>
-            <th className="px-2 py-1 text-left">BATCH</th>
-            <th className="px-2 py-1 text-left">EXP. DATE</th>
+            <th className="px-2 py-1 text-left">SHELF LIFE</th>
             <th className="px-2 py-1 text-right">QTY</th>
             <th className="px-2 py-1 text-right">Free Qty</th>
             <th className="px-2 py-1 text-right">RATE</th>
@@ -108,11 +107,10 @@ export default function Invoice({ order }: InvoiceProps) {
             <tr key={index} className="border-b">
               <td className="px-2 py-1">{index + 1}</td>
               <td className="px-2 py-1">{item.product?.name || "N/A"}</td>
-              <td className="px-2 py-1">30049099</td>
-              <td className="px-2 py-1">SALUD</td>
-              <td className="px-2 py-1">1*10</td>
-              <td className="px-2 py-1">{item.batch}</td>
-              <td className="px-2 py-1">{item.expiry}</td>
+              <td className="px-2 py-1">{item.product?.hsnCode || "N/A"}</td>
+              <td className="px-2 py-1">{item.product?.genericName || "N/A"}</td>
+              <td className="px-2 py-1">{item.product?.packaging || "N/A"}</td>
+              <td className="px-2 py-1">{item.product?.shelfLife || "N/A"}</td>
               <td className="px-2 py-1 text-right">{item.quantity}</td>
               <td className="px-2 py-1 text-right">{item.freeQuantity}</td>
               <td className="px-2 py-1 text-right">{item.rate?.toFixed(2)}</td>

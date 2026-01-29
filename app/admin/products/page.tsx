@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import ProductForm from "@/components/product-form"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,29 +20,18 @@ import {
 interface Product {
   _id: string
   name: string
-  manufacturerName: string
-  batch: string
-  expiryDate: string
+  genericName: string
+  packaging: string
+  dosageForm: string
+  category: string
   currentStock: number
-  minimumStockAlert: number
   mrp: number
+  netMrp: number
+  pts: number
+  ptr: number
   status: string
-  strength?: string
-  dosageForm?: string
-  category?: string
   hsnCode?: string
-  manufacturingDate?: string
-  drugLicenseNumber?: string
-  scheduleType?: string
-  packType?: string
-  unitsPerPack?: number
-  freeQuantity?: number
-  ptr?: number
-  sellingRate?: number
-  discountPercent?: number
-  gstPercent?: number
-  openingStock?: number
-  stockUnit?: string
+  shelfLife?: string
 }
 
 export default function ProductsPage() {
@@ -139,31 +130,35 @@ export default function ProductsPage() {
   if (loading) return <div className="p-4">Loading...</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Product Management</h1>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Product Management</h1>
+          <p className="text-sm text-slate-500">Create, edit, and monitor product inventory.</p>
+        </div>
         {!showForm && (
           <Button onClick={handleAddNew}>Add Product</Button>
         )}
       </div>
 
-      {showForm && (
-        <>
-          {editingLoading && (
-            <div className="p-2 text-sm text-slate-600">Loading product...</div>
-          )}
+      <Dialog open={showForm} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+          </DialogHeader>
+          {editingLoading && <div className="p-2 text-sm text-slate-600">Loading product...</div>}
           <ProductForm
             key={`${formKey}-${editingProduct?._id ?? "new-product"}`}
             onSuccess={handleProductCreated}
             product={editingProduct}
           />
-          <div className="mb-4">
+          <div className="flex justify-end">
             <Button variant="outline" onClick={handleCancelEdit}>
-              Cancel
+              Close
             </Button>
           </div>
-        </>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-4">
         <Input
@@ -174,70 +169,65 @@ export default function ProductsPage() {
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100">
+      <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-4 py-2 text-left">Product Name</th>
-              <th className="px-4 py-2 text-left">Manufacturer</th>
-              <th className="px-4 py-2 text-left">Batch</th>
-              <th className="px-4 py-2 text-left">Expiry</th>
-              <th className="px-4 py-2 text-right">Stock</th>
-              <th className="px-4 py-2 text-right">MRP</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
+              <th className="px-4 py-3 text-left">Product Name</th>
+              <th className="px-4 py-3 text-left">Generic Name</th>
+              <th className="px-4 py-3 text-left">Packaging</th>
+              <th className="px-4 py-3 text-left">Dosage Form</th>
+              <th className="px-4 py-3 text-left">Category</th>
+              <th className="px-4 py-3 text-right">Stock</th>
+              <th className="px-4 py-3 text-right">Net MRP</th>
+              <th className="px-4 py-3 text-right">MRP</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             {products
               .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
               .map((product) => (
-                <tr key={product._id} className="border-b hover:bg-slate-50">
-                  <td className="px-4 py-2">{product.name}</td>
-                  <td className="px-4 py-2">{product.manufacturerName}</td>
-                  <td className="px-4 py-2">{product.batch}</td>
-                  <td className="px-4 py-2">{product.expiryDate}</td>
-                  <td className="px-4 py-2 text-right">
-                    <span
-                      className={`px-2 py-1 rounded text-white text-xs ${
-                        product.currentStock <= product.minimumStockAlert ? "bg-red-600" : "bg-green-600"
-                      }`}
-                    >
+                <tr key={product._id} className="border-b last:border-b-0 hover:bg-slate-50/70">
+                  <td className="px-4 py-3 font-medium text-slate-900">{product.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{product.genericName}</td>
+                  <td className="px-4 py-3">{product.packaging}</td>
+                  <td className="px-4 py-3">{product.dosageForm}</td>
+                  <td className="px-4 py-3">{product.category}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
                       {product.currentStock}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-4 py-2 text-right">₹{product.mrp}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        product.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                      }`}
+                  <td className="px-4 py-3 text-right">₹{product.netMrp}</td>
+                  <td className="px-4 py-3 text-right">₹{product.mrp}</td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      variant="secondary"
+                      className={
+                        product.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                      }
                     >
                       {product.status}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-4 py-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(product._id)}
-                      >
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(product._id)}>
                         Edit
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeleteProductId(product._id)}
-                      >
+                      <Button variant="destructive" size="sm" onClick={() => setDeleteProductId(product._id)}>
                         Delete
                       </Button>
                     </div>
                   </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <AlertDialog open={deleteProductId !== null} onOpenChange={(open) => !open && setDeleteProductId(null)}>

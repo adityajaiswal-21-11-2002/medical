@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -39,31 +40,35 @@ export default function UserOrdersPage() {
   if (loading) return <div className="p-4">Loading...</div>
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">My Orders</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">My Orders</h1>
+        <p className="text-sm text-slate-500">Review order status and download invoices.</p>
+      </div>
 
       <div className="grid grid-cols-1 gap-4">
         {orders.map((order) => (
-          <Card key={order._id} className="p-4 hover:shadow-lg transition">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-lg">{order.orderNumber}</h3>
+          <Card key={order._id} className="rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div className="flex flex-wrap justify-between gap-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
                 <p className="text-sm text-slate-600">{order.customerName}</p>
-                <p className="text-sm text-slate-600">{new Date(order.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</p>
               </div>
-              <div className="text-right space-y-2">
-                <p className="font-bold text-lg">₹{order.netAmount.toFixed(2)}</p>
-                <p
-                  className={`text-sm px-2 py-1 rounded text-white inline-block ${
+              <div className="space-y-2 text-right">
+                <p className="text-lg font-semibold">₹{order.netAmount.toFixed(2)}</p>
+                <Badge
+                  variant="secondary"
+                  className={
                     order.status === "DELIVERED"
-                      ? "bg-green-600"
+                      ? "bg-emerald-100 text-emerald-700"
                       : order.status === "CANCELLED"
-                        ? "bg-red-600"
-                        : "bg-blue-600"
-                  }`}
+                        ? "bg-rose-100 text-rose-700"
+                        : "bg-blue-100 text-blue-700"
+                  }
                 >
                   {order.status}
-                </p>
+                </Badge>
                 <div>
                   <Link href={`/user/orders/${order._id}`}>
                     <Button variant="outline" size="sm">

@@ -16,16 +16,17 @@ export async function POST(request: NextRequest) {
 
     await connectDB()
 
-    const gstPercent = validatedData.gstPercent || 5
-    const cgst = (validatedData.mrp * gstPercent) / 100 / 2
-    const sgst = (validatedData.mrp * gstPercent) / 100 / 2
+    const gstPercent = validatedData.gstPercent ?? 5
+    const taxableValue = validatedData.netMrp
+    const cgst = (taxableValue * gstPercent) / 100 / 2
+    const sgst = (taxableValue * gstPercent) / 100 / 2
 
     const product = new Product({
       ...validatedData,
       cgst,
       sgst,
+      taxableValue,
       totalGstAmount: cgst + sgst,
-      currentStock: validatedData.openingStock,
       createdBy: session.userId,
     })
 

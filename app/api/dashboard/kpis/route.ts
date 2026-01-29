@@ -16,15 +16,13 @@ export async function GET(request: NextRequest) {
     const totalProducts = await Product.countDocuments({ status: "ACTIVE" })
     const lowStockItems = await Product.countDocuments({
       status: "ACTIVE",
-      $expr: { $lte: ["$currentStock", "$minimumStockAlert"] },
+      currentStock: { $lte: 0 },
     })
 
     const now = new Date()
     const expiredProducts = await Product.countDocuments({
       status: "ACTIVE",
-      expiryDate: {
-        $regex: `^(0[1-9]|1[0-2])/20(2[0-4]|[01][0-9])$`,
-      },
+      shelfLife: { $regex: `^(0[1-9]|1[0-2])/20(2[0-4]|[01][0-9])$` },
     })
 
     const totalOrders = await Order.countDocuments()

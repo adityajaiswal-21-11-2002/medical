@@ -82,10 +82,11 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   }
 
   return (
-    <Card className="p-6 mb-6">
-      <h2 className="text-xl font-bold mb-4">Create New User</h2>
+    <Card className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-semibold mb-1">Create New User</h2>
+      <p className="text-sm text-slate-500 mb-4">Add a new employee profile and access role.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium mb-1">Name *</label>
             <Input name="name" value={formData.name} onChange={handleChange} required />
@@ -104,7 +105,7 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
+              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-slate-400 focus:outline-none"
             >
               <option value="USER">User</option>
               <option value="ADMIN">Admin</option>
@@ -151,9 +152,11 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
 
         {error && <div className="text-red-600 text-sm">{error}</div>}
 
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create User"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Creating..." : "Create User"}
+          </Button>
+        </div>
       </form>
     </Card>
   )
