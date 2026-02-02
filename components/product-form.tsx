@@ -22,6 +22,7 @@ interface Product {
   hsnCode: string
   shelfLife: string
   currentStock: number
+  photoBase64?: string
 }
 
 interface ProductFormProps {
@@ -33,6 +34,7 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     genericName: "",
@@ -47,6 +49,7 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
     hsnCode: "",
     shelfLife: "",
     currentStock: "",
+    photoBase64: "",
   })
 
   useEffect(() => {
@@ -67,7 +70,12 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
         hsnCode: product.hsnCode || "",
         shelfLife: product.shelfLife || "",
         currentStock: product.currentStock?.toString() || "",
+        photoBase64: product.photoBase64 || "",
       })
+      setImagePreview(product.photoBase64 || null)
+    } else {
+      setImagePreview(null)
+      setFormData((prev) => ({ ...prev, photoBase64: "" }))
     }
   }, [product])
 
@@ -85,6 +93,39 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
     }))
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) {
+      setImagePreview(null)
+      setFormData((prev) => ({ ...prev, photoBase64: "" }))
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file")
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size should be less than 5MB")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setImagePreview(base64String)
+      setFormData((prev) => ({ ...prev, photoBase64: base64String }))
+      setError("")
+    }
+    reader.onerror = () => {
+      setError("Failed to read image file")
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -95,10 +136,16 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
       const url = product ? `/api/products/${product._id}` : "/api/products/create"
       const method = product ? "PUT" : "POST"
 
+      // Prepare data, only include photoBase64 if it exists
+      const submitData = { ...formData }
+      if (!submitData.photoBase64) {
+        delete submitData.photoBase64
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       })
 
       if (!response.ok) {
@@ -131,6 +178,39 @@ export default function ProductForm({ onSuccess, product }: ProductFormProps) {
       <h2 className="text-xl font-semibold mb-1">{product ? "Edit Product" : "Add New Product"}</h2>
       <p className="text-sm text-slate-500 mb-4">Keep product information accurate and up to date.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Image Upload Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Product Photo</label>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start">
+            <div className="flex-shrink-0">
+              <div className="relative w-32 h-32 border-2 border-dashed border-slate-300 rounded-lg overflow-hidden bg-slate-50 flex items-center justify-center">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center text-slate-400 text-xs p-2">
+                    No image
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Upload a product image (max 5MB). Supported formats: JPG, PNG, GIF, WebP
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium mb-1">Product Name *</label>

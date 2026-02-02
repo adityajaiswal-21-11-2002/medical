@@ -15,6 +15,7 @@ interface Product {
   currentStock: number
   netMrp: number
   mrp: number
+  photoBase64?: string
 }
 
 export default function UserProductsPage() {
@@ -63,12 +64,26 @@ export default function UserProductsPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredProducts.map((product) => (
           <Card key={product._id} className="rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            {/* Product Image */}
+            <div className="mb-3 w-full overflow-hidden rounded-lg bg-slate-100">
+              <img
+                src={product.photoBase64 || "/placeholder.jpg"}
+                alt={product.name}
+                className="h-48 w-full object-cover"
+                onError={(e) => {
+                  // Fallback to default image if base64 fails or is invalid
+                  const target = e.target as HTMLImageElement
+                  target.src = "/placeholder.jpg"
+                }}
+              />
+            </div>
+            
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="flex-1">
                 <h3 className="text-base font-semibold text-slate-900">{product.name}</h3>
                 <p className="text-sm text-slate-500">Generic: {product.genericName}</p>
               </div>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 flex-shrink-0">
                 {product.currentStock} in stock
               </Badge>
             </div>

@@ -53,6 +53,8 @@ export const productCreateSchema = z.object({
   hsnCode: z.string().min(1, "HSN code is required"),
   shelfLife: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Format: MM/YYYY"),
   currentStock: z.preprocess(toNumber, z.number().int().nonnegative("Current stock must be 0 or more")),
+  // Optional base64-encoded product photo
+  photoBase64: z.string().optional(),
 })
 
 // Order validation schemas
