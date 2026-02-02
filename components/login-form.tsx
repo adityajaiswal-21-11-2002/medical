@@ -57,9 +57,6 @@ export default function LoginForm() {
           <p className="text-sm text-slate-600">
             Sign in to manage inventory, orders, and reports across your distribution network.
           </p>
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs text-emerald-700">
-            Demo Admin: admin@example.com / admin123
-          </div>
         </div>
 
         <Card className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-lg">
@@ -71,7 +68,7 @@ export default function LoginForm() {
             <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
             <Input
               type="email"
-              placeholder="admin@example.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
