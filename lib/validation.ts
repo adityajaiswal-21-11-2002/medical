@@ -62,6 +62,8 @@ export const orderCreateSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   customerMobile: z.string().regex(/^[0-9]{10}$/, "Mobile must be 10 digits"),
   customerAddress: z.string().min(5, "Address must be at least 5 characters"),
+  customerEmail: z.string().email("Valid email is required"),
+  pincode: z.string().regex(/^[0-9]{6}$/, "PIN code must be 6 digits"),
   gstin: z
     .string()
     .regex(/^[0-9A-Z]{15}$/, "Invalid GSTIN format")

@@ -14,12 +14,14 @@ export default function LoginForm() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setFieldErrors({})
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -29,7 +31,14 @@ export default function LoginForm() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
+        if (data?.details?.fieldErrors) {
+          const next: Record<string, string> = {}
+          for (const [key, messages] of Object.entries(data.details.fieldErrors as Record<string, string[]>)) {
+            if (Array.isArray(messages) && messages[0]) next[key] = messages[0]
+          }
+          setFieldErrors(next)
+        }
         throw new Error(data.error || "Login failed")
       }
 
@@ -44,6 +53,11 @@ export default function LoginForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const FieldError = ({ name }: { name: string }) => {
+    if (!fieldErrors[name]) return null
+    return <div className="mt-1 text-xs text-red-600">{fieldErrors[name]}</div>
   }
 
   return (
@@ -73,6 +87,7 @@ export default function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <FieldError name="email" />
           </div>
 
           <div>
@@ -84,6 +99,7 @@ export default function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <FieldError name="password" />
           </div>
 
           {error && <div className="text-red-600 text-sm">{error}</div>}

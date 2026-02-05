@@ -63,7 +63,10 @@ export default function UserProductsPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredProducts.map((product) => (
-          <Card key={product._id} className="rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+          <Card
+            key={product._id}
+            className="flex h-full flex-col rounded-xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
             {/* Product Image */}
             <div className="mb-3 w-full overflow-hidden rounded-lg bg-slate-100">
               <img
@@ -77,29 +80,42 @@ export default function UserProductsPage() {
                 }}
               />
             </div>
-            
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-slate-900">{product.name}</h3>
-                <p className="text-sm text-slate-500">Generic: {product.genericName}</p>
+
+            <div className="flex flex-1 flex-col">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-slate-900">{product.name}</h3>
+                  {/* Treat generic name as description, clamp and show full on hover */}
+                  <p
+                    className="mt-0.5 text-sm text-slate-500 line-clamp-2"
+                    title={product.genericName}
+                  >
+                    Generic: {product.genericName}
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="flex-shrink-0 bg-emerald-100 text-emerald-700"
+                >
+                  {product.currentStock} in stock
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 flex-shrink-0">
-                {product.currentStock} in stock
-              </Badge>
-            </div>
-            <div className="mt-3 space-y-1 text-sm text-slate-600">
-              <p>Packaging: {product.packaging}</p>
-              <p>Dosage: {product.dosageForm}</p>
-              <p>Category: {product.category}</p>
-            </div>
-            <div className="mt-4 flex items-end justify-between">
-              <div>
-                <p className="text-xs text-slate-400">Net MRP</p>
-                <p className="text-base font-semibold text-slate-900">₹{product.netMrp}</p>
+
+              <div className="mt-3 space-y-1 text-sm text-slate-600">
+                <p>Packaging: {product.packaging}</p>
+                <p>Dosage: {product.dosageForm}</p>
+                <p>Category: {product.category}</p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">MRP</p>
-                <p className="text-sm text-slate-600">₹{product.mrp}</p>
+
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <p className="text-xs text-slate-400">Net MRP</p>
+                  <p className="text-base font-semibold text-slate-900">₹{product.netMrp}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">MRP</p>
+                  <p className="text-sm text-slate-600">₹{product.mrp}</p>
+                </div>
               </div>
             </div>
           </Card>

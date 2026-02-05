@@ -12,12 +12,6 @@ export default function Invoice({ order }: InvoiceProps) {
     day: "2-digit",
   })
 
-  const dueDate = new Date(now.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-
   const company = {
     name: "SANDP HEALTHCARE PVT LTD",
     address: "6/6 KUSTIA ROAD, FIRST FLOOR, WARD NO - 66, TILJALA",
@@ -55,9 +49,8 @@ export default function Invoice({ order }: InvoiceProps) {
       {/* Invoice Details */}
       <div className="mb-4 grid grid-cols-2 gap-4">
         <div>
-          <p className="font-bold">Invoice No.: SANDP/{order._id?.toString().slice(-2) || "0"}</p>
+          <p className="font-bold">Invoice No.: {order.invoiceNumber || order.orderNumber}</p>
           <p>Date: {invoiceDate}</p>
-          <p>Due Date: {dueDate}</p>
         </div>
         <div className="text-right">
           <p>Order No.: {order.orderNumber}</p>
@@ -72,6 +65,8 @@ export default function Invoice({ order }: InvoiceProps) {
           <p>Name: {order.customerName}</p>
           <p>Address: {order.customerAddress}</p>
           <p>MOB - {order.customerMobile}</p>
+          {order.customerEmail && <p>Email: {order.customerEmail}</p>}
+          {order.pincode && <p>PIN: {order.pincode}</p>}
           {order.gstin && <p>GSTIN: {order.gstin}</p>}
         </div>
         <div>
@@ -79,6 +74,8 @@ export default function Invoice({ order }: InvoiceProps) {
           <p>Name: {order.customerName}</p>
           <p>Address: {order.customerAddress}</p>
           <p>Mob.: {order.customerMobile}</p>
+          {order.customerEmail && <p>Email: {order.customerEmail}</p>}
+          {order.pincode && <p>PIN: {order.pincode}</p>}
           {order.gstin && <p>GSTIN: {order.gstin}</p>}
         </div>
       </div>
@@ -103,23 +100,27 @@ export default function Invoice({ order }: InvoiceProps) {
           </tr>
         </thead>
         <tbody>
-          {order.items?.map((item: any, index: number) => (
-            <tr key={index} className="border-b">
-              <td className="px-2 py-1">{index + 1}</td>
-              <td className="px-2 py-1">{item.product?.name || "N/A"}</td>
-              <td className="px-2 py-1">{item.product?.hsnCode || "N/A"}</td>
-              <td className="px-2 py-1">{item.product?.genericName || "N/A"}</td>
-              <td className="px-2 py-1">{item.product?.packaging || "N/A"}</td>
-              <td className="px-2 py-1">{item.product?.shelfLife || "N/A"}</td>
-              <td className="px-2 py-1 text-right">{item.quantity}</td>
-              <td className="px-2 py-1 text-right">{item.freeQuantity}</td>
-              <td className="px-2 py-1 text-right">{item.rate?.toFixed(2)}</td>
-              <td className="px-2 py-1 text-right">{(item.quantity * item.rate)?.toFixed(2)}</td>
-              <td className="px-2 py-1 text-right">2.5%</td>
-              <td className="px-2 py-1 text-right">2.5%</td>
-              <td className="px-2 py-1 text-right">{((item.sgst || 0) + (item.cgst || 0))?.toFixed(2)}</td>
-            </tr>
-          ))}
+          {order.items?.map((item: any, index: number) => {
+            const gstPercent = item.product?.gstPercent ?? 0
+            const halfGstPercent = gstPercent / 2
+            return (
+              <tr key={index} className="border-b">
+                <td className="px-2 py-1">{index + 1}</td>
+                <td className="px-2 py-1">{item.product?.name || "N/A"}</td>
+                <td className="px-2 py-1">{item.product?.hsnCode || "N/A"}</td>
+                <td className="px-2 py-1">{item.product?.genericName || "N/A"}</td>
+                <td className="px-2 py-1">{item.product?.packaging || "N/A"}</td>
+                <td className="px-2 py-1">{item.product?.shelfLife || "N/A"}</td>
+                <td className="px-2 py-1 text-right">{item.quantity}</td>
+                <td className="px-2 py-1 text-right">{item.freeQuantity}</td>
+                <td className="px-2 py-1 text-right">{item.rate?.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right">{(item.quantity * item.rate)?.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right">{halfGstPercent}%</td>
+                <td className="px-2 py-1 text-right">{halfGstPercent}%</td>
+                <td className="px-2 py-1 text-right">{((item.sgst || 0) + (item.cgst || 0))?.toFixed(2)}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
 

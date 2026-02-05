@@ -23,10 +23,13 @@ export default function CreateOrderPage() {
   const [customerName, setCustomerName] = useState("")
   const [customerMobile, setCustomerMobile] = useState("")
   const [customerAddress, setCustomerAddress] = useState("")
+  const [customerEmail, setCustomerEmail] = useState("")
+  const [pincode, setPincode] = useState("")
   const [gstin, setGstin] = useState("")
   const [doctorName, setDoctorName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [productSearch, setProductSearch] = useState("")
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -91,6 +94,7 @@ export default function CreateOrderPage() {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setFieldErrors({})
 
     if (selectedProducts.length === 0) {
       setError("Please select at least one product")
@@ -106,6 +110,8 @@ export default function CreateOrderPage() {
           customerName,
           customerMobile,
           customerAddress,
+          customerEmail,
+          pincode,
           gstin,
           doctorName,
           items: selectedProducts,
@@ -113,7 +119,14 @@ export default function CreateOrderPage() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
+        if (data?.details?.fieldErrors) {
+          const next: Record<string, string> = {}
+          for (const [key, messages] of Object.entries(data.details.fieldErrors as Record<string, string[]>)) {
+            if (Array.isArray(messages) && messages[0]) next[key] = messages[0]
+          }
+          setFieldErrors(next)
+        }
         throw new Error(data.error || "Failed to create order")
       }
 
@@ -124,11 +137,18 @@ export default function CreateOrderPage() {
       setCustomerName("")
       setCustomerMobile("")
       setCustomerAddress("")
+      setCustomerEmail("")
+      setPincode("")
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  const FieldError = ({ name }: { name: string }) => {
+    if (!fieldErrors[name]) return null
+    return <div className="mt-1 text-xs text-red-600">{fieldErrors[name]}</div>
   }
 
   const filteredProducts = products.filter((product) =>
@@ -149,18 +169,42 @@ export default function CreateOrderPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Customer Name *</label>
               <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required />
+              <FieldError name="customerName" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Mobile *</label>
               <Input value={customerMobile} onChange={(e) => setCustomerMobile(e.target.value)} required />
+              <FieldError name="customerMobile" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Email *</label>
+              <Input
+                type="email"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                required
+              />
+              <FieldError name="customerEmail" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Address *</label>
               <Input value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} required />
+              <FieldError name="customerAddress" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">PIN Code *</label>
+              <Input
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                placeholder="6-digit PIN code"
+                required
+              />
+              <FieldError name="pincode" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">GSTIN</label>
               <Input value={gstin} onChange={(e) => setGstin(e.target.value)} />
+              <FieldError name="gstin" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Doctor Name</label>

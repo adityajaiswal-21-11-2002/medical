@@ -19,11 +19,26 @@ export async function GET(request: NextRequest) {
       currentStock: { $lte: 0 },
     })
 
+    // Compute expired products based on parsed shelf life (MM/YYYY)
     const now = new Date()
-    const expiredProducts = await Product.countDocuments({
+    const activeProductsWithStock = await Product.find({
       status: "ACTIVE",
-      shelfLife: { $regex: `^(0[1-9]|1[0-2])/20(2[0-4]|[01][0-9])$` },
+      currentStock: { $gt: 0 },
     })
+
+    let expiredProducts = 0
+    for (const product of activeProductsWithStock) {
+      if (!product.shelfLife) continue
+      const match = /^(\d{2})\/(\d{4})$/.exec(product.shelfLife)
+      if (!match) continue
+      const month = Number.parseInt(match[1], 10)
+      const year = Number.parseInt(match[2], 10)
+      if (!month || !year) continue
+      const expiryDate = new Date(year, month, 0)
+      if (expiryDate < now) {
+        expiredProducts++
+      }
+    }
 
     const totalOrders = await Order.countDocuments()
     const totalSalesAmount = await Order.aggregate([{ $group: { _id: null, total: { $sum: "$netAmount" } } }])

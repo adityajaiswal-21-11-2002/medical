@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     const validatedData = validateInput(orderCreateSchema, body)
 
     await connectDB()
-    const { customerName, customerMobile, customerAddress, gstin, doctorName, items } = validatedData
+    const { customerName, customerMobile, customerAddress, customerEmail, pincode, gstin, doctorName, items } =
+      validatedData
 
     if (!items || items.length === 0) {
       throw new ApiError(400, "Order must contain at least one item")
@@ -59,12 +60,17 @@ export async function POST(request: NextRequest) {
       totalGst += gstAmount
     }
 
+    const invoiceNumber = `SANDP/${orderNumber}`
+
     const order = new Order({
       orderNumber,
+      invoiceNumber,
       bookedBy: session.userId,
       customerName,
       customerMobile,
       customerAddress,
+      customerEmail,
+      pincode,
       gstin: gstin || undefined,
       doctorName: doctorName || undefined,
       items: processedItems,

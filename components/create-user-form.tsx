@@ -14,6 +14,7 @@ interface CreateUserFormProps {
 export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,6 +28,12 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev
+      const next = { ...prev }
+      delete next[name]
+      return next
+    })
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -54,12 +61,7 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     e.preventDefault()
     setLoading(true)
     setError("")
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords must match")
-      setLoading(false)
-      return
-    }
+    setFieldErrors({})
 
     try {
       const response = await fetch("/api/users/create", {
@@ -69,7 +71,14 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       })
 
       if (!response.ok) {
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
+        if (data?.details?.fieldErrors) {
+          const next: Record<string, string> = {}
+          for (const [key, messages] of Object.entries(data.details.fieldErrors as Record<string, string[]>)) {
+            if (Array.isArray(messages) && messages[0]) next[key] = messages[0]
+          }
+          setFieldErrors(next)
+        }
         throw new Error(data.error || "Failed to create user")
       }
 
@@ -81,6 +90,11 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     }
   }
 
+  const FieldError = ({ name }: { name: string }) => {
+    if (!fieldErrors[name]) return null
+    return <div className="mt-1 text-xs text-red-600">{fieldErrors[name]}</div>
+  }
+
   return (
     <Card className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
       <h2 className="text-xl font-semibold mb-1">Create New User</h2>
@@ -90,14 +104,17 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
           <div>
             <label className="block text-sm font-medium mb-1">Name *</label>
             <Input name="name" value={formData.name} onChange={handleChange} required />
+            <FieldError name="name" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Email *</label>
             <Input type="email" name="email" value={formData.email} onChange={handleChange} required />
+            <FieldError name="email" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Mobile *</label>
             <Input name="mobile" value={formData.mobile} onChange={handleChange} required />
+            <FieldError name="mobile" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Role *</label>
@@ -121,6 +138,7 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               required
               minLength={8}
             />
+            <FieldError name="password" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Confirm Password *</label>
@@ -132,6 +150,7 @@ export default function CreateUserForm({ onSuccess }: CreateUserFormProps) {
               required
               minLength={8}
             />
+            <FieldError name="confirmPassword" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">User Photo</label>
